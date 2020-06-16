@@ -5,6 +5,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const postsRoutes = require('./routes/posts');
 
@@ -27,4 +28,12 @@ app.use((request, response, next) => {
 
 app.use('/api', postsRoutes);
 
-app.listen(process.env.PORT);
+app.use((error, request, response, next) => {
+	console.log(error);
+	const httpStatusCode = error.statusCode || 500;
+	response.status(httpStatusCode).json({ message: error.message, data: error.data });
+});
+
+mongoose.connect(process.env.MONGODBCONNECTIONURL)
+	.then(result => app.listen(process.env.PORT))
+	.catch(error => console.log(error));

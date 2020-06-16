@@ -1,3 +1,5 @@
+const Post = require('./../models/post');
+
 exports.getPosts = (request, response, next) => {
 	const posts = [
 		{
@@ -11,15 +13,39 @@ exports.getPosts = (request, response, next) => {
 			content: 'Dummy Content 2',
 		},
 	];
-	response.status(200).json({
-		message: 'success!',
-		posts: posts,
-	});
+	Post.find()
+		.then(fetchedPosts => {
+			response.status(200).json({
+				message: 'success!',
+				posts: fetchedPosts,
+			});
+		})
+		.catch(error => next(error));
 };
 
 exports.storePost = (request, response, next) => {
-	console.log(request.body);
-	response.status(201).json({
-		message: 'success!',
+	const postToStore = new Post({
+		title: request.body.title,
+		content: request.body.content,
 	});
+	postToStore.save()
+		.then(savedPost => {
+			response.status(201).json({
+				message: 'success!',
+				postId: savedPost._id,
+			});
+		})
+		.catch(error => next(error));
+};
+
+exports.deletePost = (request, response, next) => {
+	const idOfPostToDelete = request.params.postid;
+	Post.deleteOne({ _id: idOfPostToDelete })
+		.then(result => {
+			console.log(result);
+			response.status(200).json({
+				message: 'success!',
+			});
+		})
+		.catch(error => next(error));
 };
