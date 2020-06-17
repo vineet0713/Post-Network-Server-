@@ -4,11 +4,26 @@ const path = require('path');
 const Post = require('./../models/post');
 
 exports.getPosts = (request, response, next) => {
-	Post.find()
+	const pageSize = +request.query.pageSize;
+	const currentPage = +request.query.page;
+	const postQuery = Post.find();
+	if (pageSize && currentPage) {
+		postQuery
+			.sort({ createdAt: -1 })				// sorts posts in descending order of creation time
+			.skip(pageSize * (currentPage - 1))		// skips the first n posts
+			.limit(pageSize)						// only returns n posts
+	}
+	let totalPosts;
+	Post.find().countDocuments()
+		.then(itemCount => {
+			totalPosts = itemCount;
+			return postQuery;
+		})
 		.then(fetchedPosts => {
 			response.status(200).json({
 				message: 'success!',
 				posts: fetchedPosts,
+				totalPosts: totalPosts,
 			});
 		})
 		.catch(error => next(error));
@@ -33,9 +48,15 @@ exports.storePost = (request, response, next) => {
 
 exports.deletePost = (request, response, next) => {
 	const idOfPostToDelete = request.params.postid;
+	const imagePath = request.query.imagePath;
+	const imageType = request.query.imageType;
 	Post.deleteOne({ _id: idOfPostToDelete })
 		.then(result => {
-
+			if (imagePath && imageType) {
+				const imagePathToDelete = imagePath + '.' + imageType;
+				const fullImagePath = constructImagePath(request.protocol, request.get('host'), imagePathToDelete);
+				clearImage(fullImagePath);
+			}
 			response.status(200).json({
 				message: 'success!',
 			});
