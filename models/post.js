@@ -9,6 +9,10 @@ const schemaObject = {
 		type: String,
 		required: true,
 	},
+	imagePath: {
+		type: String,
+		required: true,
+	},
 };
 const schemaOptions = {
 	timestamps: true,

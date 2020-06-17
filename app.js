@@ -6,6 +6,8 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const path = require('path');
+const multer = require('multer');
 
 const postsRoutes = require('./routes/posts');
 
@@ -25,6 +27,27 @@ app.use((request, response, next) => {
 	
 	next();
 });
+
+const MIME_TYPE_MAP = {
+	'image/png': 'png',
+	'image/jpeg': 'jpeg',
+	'image/jpg': 'jpg',
+};
+const fileStorage = multer.diskStorage({
+	destination: (request, file, callback) => callback(null, 'images'),
+	filename: (request, file, callback) => {
+		const name = file.originalname.toLowerCase().split(' ').join('-');
+		const extension = MIME_TYPE_MAP[file.mimetype];
+		const uniqueFilename = name + '-' + Date.now() + '.' + extension;
+		callback(null, uniqueFilename);
+	},
+});
+
+const multerConfig = multer({ storage: fileStorage });
+app.use(multerConfig.single('image'));
+
+const absolutePathToImagesDirectory = path.join(__dirname, 'images');
+app.use('/images', express.static(absolutePathToImagesDirectory));
 
 app.use('/api', postsRoutes);
 
