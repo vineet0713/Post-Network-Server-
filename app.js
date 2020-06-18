@@ -10,6 +10,7 @@ const path = require('path');
 const multer = require('multer');
 
 const postsRoutes = require('./routes/posts');
+const authRoutes = require('./routes/auth');
 
 // This makes it possible to parse JSON data from incoming requests!
 // (will extract incoming request data and assign it to a 'body' field to the request object in middleware)
@@ -50,8 +51,10 @@ const absolutePathToImagesDirectory = path.join(__dirname, 'images');
 app.use('/images', express.static(absolutePathToImagesDirectory));
 
 app.use('/api', postsRoutes);
+app.use('/api', authRoutes);
 
 app.use((error, request, response, next) => {
+	console.log('Inside error handling middlware!');
 	console.log(error);
 	const httpStatusCode = error.statusCode || 500;
 	response.status(httpStatusCode).json({ message: error.message, data: error.data });
