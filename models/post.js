@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
 const schemaObject = {
 	title: {
@@ -13,10 +14,15 @@ const schemaObject = {
 		type: String,
 		required: true,
 	},
+	creator: {
+		type: Schema.Types.ObjectId,
+		ref: 'Poster',
+		required: true,
+	},
 };
 const schemaOptions = {
 	timestamps: true,
 };
 
-const postSchema = mongoose.Schema(schemaObject, schemaOptions);
+const postSchema = new Schema(schemaObject, schemaOptions);
 module.exports = mongoose.model('Post', postSchema);

@@ -4,7 +4,13 @@ const bcrypt = require('bcrypt');
 const jsonwebtoken = require('jsonwebtoken');
 
 exports.signup = (request, response, next) => {
-	bcrypt.hash(request.body.password, 10)
+	Poster.findOne({ username: request.body.username })
+		.then(user => {
+			if (user) {
+				throw new Error('User already exists!');
+			}
+			return bcrypt.hash(request.body.password, 10);
+		})
 		.then(hashedPassword => {
 			const poster = new Poster({
 				username: request.body.username,
@@ -35,9 +41,8 @@ exports.login = (request, response, next) => {
 				throw new Error('Invalid password');
 			}
 			const payload = {
-				id: loadedUser._id,
-				email: loadedUser.email,
-				password: loadedUser.password,
+				userId: loadedUser._id,
+				username: loadedUser.username,
 			};
 			const expiration = { expiresIn: '1h' };
 			// Creates a new token for authenticated users to be stored on the client
@@ -45,6 +50,7 @@ exports.login = (request, response, next) => {
 			response.status(200).json({
 				token: token,
 				expiresIn: 3600,	// duration (in seconds) until the token expires
+				userId: loadedUser._id.toString(),
 			});
 		})
 		.catch(error => next(error));
