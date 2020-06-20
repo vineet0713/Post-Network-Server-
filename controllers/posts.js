@@ -21,9 +21,13 @@ exports.getPosts = (request, response, next) => {
 		})
 		.then(result => {
 			const fetchedPosts = result.map(p => {
-				// remove the creator's (hashed) password from the responses!
 				const post = p._doc;
-				delete post.creator.password;
+				// remove the creator's (hashed) password from the responses!
+				const strippedCreator = {
+					_id: post.creator._doc._id,
+					username: post.creator._doc.username,
+				};
+				post.creator = strippedCreator;
 				return post;
 			});
 			response.status(200).json({
